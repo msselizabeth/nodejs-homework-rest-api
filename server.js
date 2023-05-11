@@ -1,14 +1,15 @@
-const app = require('./app')
+const app = require('./app');
+
 const mongoose = require("mongoose");
 
-const DB_HOST = "mongodb+srv://msselizabeth:KeUczi4rlvMIbxhz@cluster0.govejgr.mongodb.net/db-contacts?retryWrites=true&w=majority";
-  
+const { DB_HOST, PORT=3000 } = process.env;
+
 mongoose.set('strictQuery', true);
 
 mongoose.connect(DB_HOST)
   .then(() => {
     console.log("Database connection successful");
-    app.listen(3000, () => {
+    app.listen(PORT, () => {
   console.log("Server running. Use our API on port: 3000")
 }) 
   })
@@ -17,6 +18,4 @@ mongoose.connect(DB_HOST)
   process.exit(1);
   })
 
-
-// 
 
