@@ -1,14 +1,18 @@
 const express = require('express');
 const { HttpError } = require("../../helpers");
-const {isValidId} = require("../../middlewares")
+const {isValidId, authenticate} = require("../../middlewares")
 
 const {Contact, addSchema, updatefavoriteSchema} = require("../../models/contact");
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
   try {
-    const result = await Contact.find();
+    const { _id: owner } = req.user;
+    const { page = 1, limit = 20, favorite} = req.query;
+    const skip = (page - 1) * limit;
+    const result = await Contact.find({ owner }, '', { skip, limit }).populate('owner', 'name email');
+    
     res.json(result);
   }
   catch(error) {
@@ -16,7 +20,7 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-router.get('/:contactId', isValidId, async (req, res, next) => {
+router.get('/:contactId', authenticate, isValidId, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const result = await Contact.findById(contactId);
@@ -30,13 +34,14 @@ router.get('/:contactId', isValidId, async (req, res, next) => {
   }
 })
 
-router.post('/', async (req, res, next) => {
+router.post('/', authenticate,  async (req, res, next) => {
   try {
     const { error } = addSchema.validate(req.body);
     if (error) {
       throw HttpError(400, error.message);
     }
-    const result = await Contact.create(req.body);
+    const { _id: owner } = req.user; 
+    const result = await Contact.create({...req.body, owner}); 
     res.status(201).json(result);
   }
   catch (error) {
@@ -44,7 +49,7 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-router.delete('/:contactId', isValidId, async (req, res, next) => {
+router.delete('/:contactId',authenticate, isValidId, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const result = await Contact.findByIdAndRemove(contactId);
@@ -58,7 +63,7 @@ router.delete('/:contactId', isValidId, async (req, res, next) => {
   }
 })
 
-router.put('/:contactId',isValidId , async (req, res, next) => {
+router.put('/:contactId', authenticate, isValidId , async (req, res, next) => {
   try {
     const { error } = addSchema.validate(req.body);
     if (error) {
@@ -76,7 +81,7 @@ router.put('/:contactId',isValidId , async (req, res, next) => {
   }
 })
 
-router.patch('/:contactId/favorite', isValidId, async (req, res, next) => {
+router.patch('/:contactId/favorite', authenticate,isValidId, async (req, res, next) => {
   try {
     const { error } = updatefavoriteSchema.validate(req.body);
     if (error) {
