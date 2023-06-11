@@ -17,14 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-
-// const booksDir = path.join(__dirname, 'public', 'avatars');
-// app.post('/api/books', upload.single('ava'), async (req, res) => {
-//   const { path: tempUpload, originalname } = req.file;
-//   const resultUpload = path.join(booksDir, originalname);
-//   await fs.rename(tempUpload, resultUpload);
-// })
-
 app.use('/api/auth', authRouter);
 app.use('/api/contacts', contactsRouter);
 
